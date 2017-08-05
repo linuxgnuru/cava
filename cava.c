@@ -85,7 +85,7 @@ char *inputMethod, *outputMethod, *modeString, *color, *bcolor, *style, *raw_tar
 // *bar_delim, *frame_delim ;
 char *gradient_color_1;
 char *gradient_color_2;
-double monstercat, integral, gravity, ignore, smh, sens;
+double monstercat, integral, gravity, ignore, smh, sens, foreground_opacity;
 int fixedbars, framerate, bw, bs, set_win_props, autosens, overshoot;
 unsigned int lowcf, highcf;
 double smoothDef[64] = {0.8, 0.8, 1, 1, 0.8, 0.8, 1, 0.8, 0.8, 1, 1, 0.8,
@@ -115,8 +115,8 @@ int gradient = 0;
 dictionary* ini;
 char supportedInput[255] = "'fifo'";
 int sourceIsAuto = 1;
-
-
+int monstercat_alternative = 0;
+unsigned int shdw_col, shdw;
 
 // whether we should reload the config or not
 int should_reload = 0;
@@ -234,12 +234,14 @@ void load_config(char configPath[255])
 	modeString = (char *)iniparser_getstring(ini, "general:mode", "normal");
 
 	monstercat = 1.5 * iniparser_getdouble(ini, "smoothing:monstercat", 1);
+	monstercat_alternative = iniparser_getboolean(ini, "smoothing:monstercat_alternative", 0);
 	integral = iniparser_getdouble(ini, "smoothing:integral", 0.7);
 	gravity = iniparser_getdouble(ini, "smoothing:gravity", 1);
 	ignore = iniparser_getdouble(ini, "smoothing:ignore", 0);
 
 	color = (char *)iniparser_getstring(ini, "color:foreground", "default");
 	bcolor = (char *)iniparser_getstring(ini, "color:background", "default");
+	foreground_opacity = iniparser_getdouble(ini, "color:foreground_opacity", 1.0);
 
    	gradient = iniparser_getint(ini, "color:gradient", 0);
     if (gradient) {
@@ -276,6 +278,11 @@ void load_config(char configPath[255])
 	frame_delim = (char)iniparser_getint(ini, "output:frame_delimiter", 10);
 	ascii_range = iniparser_getint(ini, "output:ascii_max_range", 1000);
 	bit_format = iniparser_getint(ini, "output:bit_format", 16);
+
+    // config: shadow
+	shdw = iniparser_getint(ini, "shadow:size", 0);
+	char *temp = iniparser_getstring(ini, "shadow:color", "#ff000000");
+	sscanf(temp, "#%x", &shdw_col);
 
 	// read & validate: eq
 
@@ -587,6 +594,12 @@ void validate_config()
 		
 		// Set window properties
 		set_win_props = iniparser_getint(ini, "window:set_win_props", 0);
+
+		if(foreground_opacity > 1.0)
+		{
+			fprintf(stderr, "foreground_opacity cannot be above 1.0\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 
@@ -662,6 +675,11 @@ int * monstercat_filter (int * f, int bars) {
 				f[m_y] = max(f[z] - pow(de, 2), f[m_y]);
 			}
 		}
+	} else if (monstercat_alternative && monstercat > 0){		// less spiky monstercat smoothing method
+		for (z = 1; z < bars - 1; z++)
+			f[z] = 0.7*((f[z-1] + f[z+1])*monstercat/2+f[z]/2);
+		f[0] = (f[1]+f[0])/2;
+		f[bars - 1] = (f[bars-1]+f[bars-2])/2;
 	} else if (monstercat > 0) {
 		for (z = 0; z < bars; z++) {
 			if (f[z] < 0.125)f[z] = 0.125;
@@ -877,7 +895,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 	// open XLIB window and set everything up
 	#ifdef XLIB
-	if(om == 5) if(init_window_x(color, bcolor, col, bgcol, set_win_props, argv, argc, gradient, gradient_color_1, gradient_color_2)) exit(EXIT_FAILURE);
+	if(om == 5) if(init_window_x(color, bcolor, foreground_opacity, col, bgcol, set_win_props, argv, argc, gradient, gradient_color_1, gradient_color_2, shdw, shdw_col)) exit(EXIT_FAILURE);
 	#endif
 
 	// setting up sdl
@@ -1305,7 +1323,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 						if(reloadConf)
 							break;
 						
-						draw_graphical_x(h, bars, bw, bs, rest, gradient, f, flastd);
+						draw_graphical_x(h, bars, bw, bs, rest, gradient, f, flastd, foreground_opacity);
 						break;
 						#endif
 					}
