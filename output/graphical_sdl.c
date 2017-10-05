@@ -136,7 +136,7 @@ int init_window_sdl(int *col, int *bgcol, char *color, char *bcolor, int gradien
 	return 0;
 }
 
-void apply_window_settings_sdl(int bgcol)
+void apply_window_settings_sdl(int bgcol, int *w, int *h)
 {
 	// toggle fullscreen
 	SDL_SetWindowFullscreen(cavaSDLWindow, SDL_WINDOW_FULLSCREEN & fs);
@@ -146,10 +146,14 @@ void apply_window_settings_sdl(int bgcol)
 	// If I had a job, here's what I would be fired for xD
 	SDL_Delay(100);
 	SDL_FillRect(cavaSDLWindowSurface, NULL, SDL_MapRGB(cavaSDLWindowSurface->format, bgcol / 0x10000 % 0x100, bgcol / 0x100 % 0x100, bgcol % 0x100));
+	
+	// Window size patch, because cava wipes w and h for some reason.
+	(*w) = cavaSDLWindowSurface->w;
+	(*h) = cavaSDLWindowSurface->h;
 	return;
 }
 
-int get_window_input_sdl(int *bs, int *bw, double *sens, int *mode, int modes, int *col, int *bgcol, int *w, int *h, int gradient)
+int get_window_input_sdl(int *bs, int *bw, double *sens, int *col, int *bgcol, int *w, int *h, int gradient)
 {
 	while(SDL_PollEvent(&cavaSDLEvent) != 0)
 	{
@@ -184,13 +188,6 @@ int get_window_input_sdl(int *bs, int *bw, double *sens, int *mode, int modes, i
 					case SDLK_RIGHT: // key right
 						if((*bw) > 1) (*bw)--;
 						return 2;
-					case SDLK_m:
-						if((*mode) == modes){
-							(*mode) = 1;
-						} else {
-							(*mode)++;
-						}
-						break;
 					case SDLK_r: // reload config
 						return 1;
 					case SDLK_c: // change foreground color

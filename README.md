@@ -5,10 +5,14 @@ C.A.V.A. (M.P.)
 
 by [Karl Stavestrand](mailto:karl@stavestrand.no)
 
-Now with multicolored gradient:
-```
-gradient = 1
-```
+Changes in 0.6:
+* Autosens of low values (dynamic range)
+* Removed config parameter 'overshoot'
+* Removed config parameter 'mode'
+* New config parameter 'waves'
+* Changed config parameter 'style' to 'channels' (was either 'mono' or 'stereo' anyway)
+* Parameters 'integral' and 'gravity' are now in percentage
+
 
 ![spectrum](https://raw.githubusercontent.com/karlstav/cava/gh-pages/cava_gradient.gif "spectrum")
 
@@ -42,7 +46,9 @@ thanks to [anko](https://github.com/anko) for the gif, here is the [recipe]( htt
   - [Controls](#controls)
 - [Configuration](#configuration)
   - [GUI Options](#gui)
-- [Thanks](#thanks)
+  - [Shadow](#shadow)
+  - [Opacity](#opacity)
+- [Contribution](#contribution)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -75,7 +81,7 @@ Debian/Raspbian:
 
 ArchLinux:
 
-    pacman -S base-devel fftw ncurses libx11 sdl2
+    pacman -S base-devel fftw ncurses alsa-lib iniparser pulseaudio libx11 sdl2
 
 openSUSE:
 
@@ -141,7 +147,7 @@ If you use another version just replace *openSUSE_Leap_42.2* with *openSUSE_13.2
 
 Cava is in [AUR](https://aur.archlinux.org/packages/cava/).
 
-    yaourt -S cava
+    pacaur -S cava
 
 The GUI branch (this) is also in [AUR](https://aur.archlinux.org/packages/cava-gui-git/).
 
@@ -155,9 +161,10 @@ Michael Nguyen has added CAVA to his PPA, it can be installed with:
     sudo apt-get update
     sudo apt-get install cava
     
+**Not working as of 2017-09-24**, see issue #176.
 
 
-All distro specific instalations sources might be out of date.
+All distro specific instalation sources might be out of date.
 
 
 Capturing audio
@@ -338,6 +345,7 @@ $ pkill -USR1 cava
 
 ![3_139](https://cloud.githubusercontent.com/assets/6376571/8670181/9db0ef50-29e8-11e5-81bc-3e2bb9892da0.png)
 
+
 ### GUI
 
 CAVA (this branch) can now run in grapical modes.
@@ -355,16 +363,17 @@ Or preferably:
 	
     output = sdl
 
-Just a bit of explination. X11/Xlib utilizes hardware drawing (if availble), while SDL2 utilizes software drawing (this could be changed in the future, however). The only reason why SDL2 is kept as a option is that it works on non X11 display servers (Wayland and such), whereas X doesn't.
+Just a bit of explination. X11/Xlib utilizes software/hardware drawing (if availble), while SDL2 utilizes software drawing (this could be changed in the future, however). The only reason why SDL2 is kept as a option is that it works on non X11 display servers (Wayland and such), whereas X doesn't.
+
+Additionally if you want full use of your hardware, you should probably enable OpenGL (works under X only):
+      
+    opengl = 1
 
 In the graphical modes you also have some other features, such as:
 
-
 Options that are unique to 'sdl' and 'x':
 
-```
-Please use window category instead of general category. As those are NOT compatible
-```
+NOTE: Please use window category instead of general category. As those are NOT compatible
 
 Toggle fullscreen:
      
@@ -432,14 +441,43 @@ NOTE: It also removes the ability to interact with the window (fxp. if you click
     
     set_win_props = 1
 
+### Shadow
 
-Thanks
-------
+You can change the following options:
+    
+    size = size of shadow in pixels
 
-Contributors:
-* [Karl Stavestrand](mailto:karl@stavestrand.no) - creator
+and
+    
+    color = the color of the shadow in the following format aarrggbb
+
+```
+NOTE: All values of the AARRGGBB format must be specified!
+```
+
+```
+2nd NOTE: Works under X only
+```
+
+### Opacity
+
+foreground_opacity = (from 0.0 to 1.0)
+
+```
+NOTE: Works under X only
+```
+
+
+Contribution
+------------
+
+Please read CONTRIBUTING.md before opening a pull request.
+
+Thanks to:
 * [CelestialWalrus](https://github.com/CelestialWalrus)
 * [anko](https://github.com/anko)
 * [livibetter](https://github.com/livibetter)
+
+for mayor contributions in the early development of this project.
 
 Also thanks to [dpayne](https://github.com/dpayne/) for figuring out how to find the pulseaudio default sink name.
