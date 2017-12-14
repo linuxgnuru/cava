@@ -72,7 +72,7 @@ dnl ########################
 
 AC_CHECK_LIB(GL, glEnable, have_gl=yes, have_gl=no)
 
-if [[ $have_xlib = "yes" ]] ; then
+if [[ $have_gl = "yes" ]] ; then
 	LIBS="$LIBS -lGL"
 	AC_CHECK_LIB(GLU, gluOrtho2D, have_glu=yes, have_glu=no)
 	if [[ $have_glu = "yes" ]] ; then
@@ -87,6 +87,12 @@ fi
 if [[ $have_gl = "no" ]] ; then
 	AC_MSG_NOTICE([WARNING: No GL dev files found building without GLX support])
 fi
+
+dnl ######################
+dnl checking for alloca.h
+dnl ######################
+
+AC_CHECK_HEADER([alloca.h], [CPPFLAGS="$CPPFLAGS -DHAVE_ALLOCA_H"])
 
 dnl ######################
 dnl checking for alsa dev
@@ -113,6 +119,19 @@ AC_CHECK_LIB(pulse-simple, pa_simple_new, have_pulse=yes, have_pulse=no)
 
     if [[ $have_pulse = "no" ]] ; then
       AC_MSG_NOTICE([WARNING: No pusleaudio dev files found building without pulseaudio support])
+    fi
+
+dnl ######################
+dnl checking for sndio dev
+dnl ######################
+AC_CHECK_LIB(sndio, sio_open, have_sndio=yes, have_sndio=no)
+    if [[ $have_sndio = "yes" ]] ; then
+      LIBS="$LIBS -lsndio"
+      CPPFLAGS="$CPPFLAGS -DSNDIO"
+    fi
+
+    if [[ $have_sndio = "no" ]] ; then
+      AC_MSG_NOTICE([WARNING: No sndio dev files found building without sndio support])
     fi
 
 dnl ######################
