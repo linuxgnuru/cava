@@ -6,6 +6,8 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
+#define CE 0
+
 unsigned char data[8] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
 
 void bitWrite(int col, int row, int b) { data[col] ^= (-b ^ data[col]) & (1 << row); }
@@ -20,18 +22,12 @@ void writeMaxByte(unsigned char addr, unsigned char dat)
 
   td[0] = addr;
   td[1] = dat;
-  wiringPiSPIDataRW(0, td, 2);
+  wiringPiSPIDataRW(CE, td, 2);
 }
 
-void writeMax()
-{
-  for (int i = 0; i < 8; i++) writeMaxByte(i + 1, data[i]);
-}
+void writeMax() { for (int i = 0; i < 8; i++) writeMaxByte(i + 1, data[i]); }
 
-void clearMax()
-{
-  for (int i = 0; i < 8; i++) writeMaxByte(i + 1, 0x0);
-}
+void clearMax() { for (int i = 0; i < 8; i++) writeMaxByte(i + 1, 0x0); }
 
 void Init_MAX7219()
 {
@@ -63,30 +59,20 @@ void maxSPI_init()
     printf("Error trying to setup wiringPi\n");
     exit(1);
   }
-  wiringPiSPISetup(0, 500000);
+  wiringPiSPISetup(CE, 500000);
   Init_MAX7219();
-  fprintf(stderr, "[wiggins] -- Init SPI\n");
+  //fprintf(stderr, "[wiggins] -- Init SPI\n");
 }
 
-int maxSPI(int bars_count, int fd, char bar_delim, char frame_delim, int ascii_range, const int const f[200])
+//int maxSPI(int bars_count, int fd, char bar_delim, char frame_delim, int ascii_range, const int const f[200])
+int maxSPI(int bars_count, int ascii_range, const int const f[200])
 {
-  //fprintf(stderr, "[wiggins] -- bars_count: %d ascii_range: %d\n", bars_count, ascii_range);
     for (int i = 0; i < bars_count; i++)
     {
         int f_ranged = f[i];
         if (f_ranged > ascii_range) f_ranged = ascii_range;
-        //if (f_ranged > 8) f_ranged = 8;
-        // finding size of number-string in byte
-        //int bar_height_size = 2; // a number + \0
-        //if (f_ranged != 0) bar_height_size += floor (log10 (f_ranged));
-        //char bar_height[bar_height_size];
-        //snprintf(bar_height, bar_height_size, "%d", f_ranged);
-  //fprintf(stderr, "[wiggins] -- f_ranged: %d\n", f_ranged);
         doGraph(i, f_ranged);
-        //write(fd, bar_height, bar_height_size - 1);
-        //write(fd, &bar_delim, sizeof(bar_delim));
     }
-	//write(fd, &frame_delim, sizeof(frame_delim));
     return 0;
 }
 

@@ -468,36 +468,38 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		// output open file/fifo for raw output
 		if (p.om == 4 || p.om == 5) {
 
-			if (strcmp(p.raw_target,"/dev/stdout") != 0) {
+            if (p.om == 4) {
+                if (strcmp(p.raw_target,"/dev/stdout") != 0) {
 
-				//checking if file exists
-				if( access( p.raw_target, F_OK ) != -1 ) {
-					//testopening in case it's a fifo
-					fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
+                    //checking if file exists
+                    if( access( p.raw_target, F_OK ) != -1 ) {
+                        //testopening in case it's a fifo
+                        fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
 
-					if (fptest == -1) {
-						printf("could not open file %s for writing\n",
-							p.raw_target);
-						exit(1);
-					}
-				} else {
-					printf("creating fifo %s\n",p.raw_target);
-					if (mkfifo(p.raw_target, 0664) == -1) {
-						printf("could not create fifo %s\n",
-							p.raw_target);
-						exit(1);
-					}
-					//fifo needs to be open for reading in order to write to it
-					fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
-				}
-		    }
+                        if (fptest == -1) {
+                            printf("could not open file %s for writing\n",
+                                    p.raw_target);
+                            exit(1);
+                        }
+                    } else {
+                        printf("creating fifo %s\n",p.raw_target);
+                        if (mkfifo(p.raw_target, 0664) == -1) {
+                            printf("could not create fifo %s\n",
+                                    p.raw_target);
+                            exit(1);
+                        }
+                        //fifo needs to be open for reading in order to write to it
+                        fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
+                    }
+                }
 
-			fp = open(p.raw_target, O_WRONLY | O_NONBLOCK | O_CREAT, 0644);
-			if (fp == -1) {
-				printf("could not open file %s for writing\n",p.raw_target);
-				exit(1);
-			}
-			printf("open file %s for writing raw ouput\n",p.raw_target);
+                fp = open(p.raw_target, O_WRONLY | O_NONBLOCK | O_CREAT, 0644);
+                if (fp == -1) {
+                    printf("could not open file %s for writing\n",p.raw_target);
+                    exit(1);
+                }
+                printf("open file %s for writing raw ouput\n",p.raw_target);
+            }
 
             //width must be hardcoded for raw output.
 			w = 200;
@@ -824,7 +826,8 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 							 p.frame_delim,f);
 						break;
 	                case 5:
-	                    rc = maxSPI(bars, fp, p.bar_delim, p.frame_delim, p.ascii_range, f);
+	                    //rc = maxSPI(bars, fp, p.bar_delim, p.frame_delim, p.ascii_range, f);
+	                    rc = maxSPI(bars, p.ascii_range, f);
 	                    break;
 				}
 
