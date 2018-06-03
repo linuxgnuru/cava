@@ -157,6 +157,9 @@ if (strcmp(outputMethod, "raw") == 0) {//raw:
 
 
 }
+    if (strcmp(outputMethod, "maxSPI") == 0) {//maxSPI:
+        p->om = 5;
+    }
 if (p->om == 0) {
 	#ifndef NCURSES
 	fprintf(stderr,

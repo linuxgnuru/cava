@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <termios.h>
 #include <math.h>
-#include <fcntl.h> 
+#include <fcntl.h>
 
 #include <sys/ioctl.h>
 #include <fftw3.h>
@@ -44,6 +44,8 @@
 #include "output/raw.h"
 #include "output/raw.c"
 
+#include "output/max_spi.h"
+#include "output/max_spi.c"
 
 #include "input/fifo.h"
 #include "input/fifo.c"
@@ -169,8 +171,8 @@ int * separate_freq_bands(fftw_complex out[M / 2 + 1], int bars, int lcf[200],
 	}
 
 	if (channel == 1) return fl;
- 	else return fr;
-} 
+	else return fr;
+}
 
 
 int * monstercat_filter (int * f, int bars, int waves, double monstercat) {
@@ -274,7 +276,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 	// general: console title
 	printf("%c]0;%s%c", '\033', PACKAGE, '\007');
-	
+
 	configPath[0] = '\0';
 
 	setlocale(LC_ALL, "");
@@ -334,7 +336,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
     output_mode = p.om;
 
-	if (p.om != 4) { 
+	if (p.om != 4 && p.om != 5) {
 		// Check if we're running in a tty
 		inAtty = 0;
 		if (strncmp(ttyname(0), "/dev/tty", 8) == 0 || strcmp(ttyname(0),
@@ -403,7 +405,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 	if (p.im == 2) {
 		//starting fifomusic listener
-		thr_id = pthread_create(&p_thread, NULL, input_fifo, (void*)&audio); 
+		thr_id = pthread_create(&p_thread, NULL, input_fifo, (void*)&audio);
 		audio.rate = 44100;
 	}
 
@@ -415,7 +417,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 			}
 		else sourceIsAuto = 0;
 		//starting pulsemusic listener
-		thr_id = pthread_create(&p_thread, NULL, input_pulse, (void*)&audio); 
+		thr_id = pthread_create(&p_thread, NULL, input_pulse, (void*)&audio);
 		audio.rate = 44100;
 	}
 	#endif
@@ -464,7 +466,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		height = (h - 1) * 8;
 
 		// output open file/fifo for raw output
-		if (p.om == 4) {
+		if (p.om == 4 || p.om == 5) {
 
 			if (strcmp(p.raw_target,"/dev/stdout") != 0) {
 
@@ -472,7 +474,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 				if( access( p.raw_target, F_OK ) != -1 ) {
 					//testopening in case it's a fifo
 					fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
-	
+
 					if (fptest == -1) {
 						printf("could not open file %s for writing\n",
 							p.raw_target);
@@ -486,7 +488,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 						exit(1);
 					}
 					//fifo needs to be open for reading in order to write to it
-					fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644); 
+					fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
 				}
 		    }
 
@@ -505,6 +507,10 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
             } else {
                 height = p.ascii_range;
             }
+	            // maxSPI
+	            if (p.om == 5) {
+	                maxSPI_init();
+	            }
 
 
 
@@ -568,19 +574,19 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		// process: calculate cutoff frequencies
 		for (n = 0; n < bars + 1; n++) {
 			fc[n] = p.highcf * pow(10, freqconst * (-1) + ((((float)n + 1) / 
-				((float)bars + 1)) * freqconst)); 
-			fre[n] = fc[n] / (audio.rate / 2); 
-			//remember nyquist!, pr my calculations this should be rate/2 
-			//and  nyquist freq in M/2 but testing shows it is not... 
+				((float)bars + 1)) * freqconst));
+			fre[n] = fc[n] / (audio.rate / 2);
+			//remember nyquist!, pr my calculations this should be rate/2
+			//and  nyquist freq in M/2 but testing shows it is not...
 			//or maybe the nq freq is in M/4
 
 			//lfc stores the lower cut frequency foo each bar in the fft out buffer
 			lcf[n] = fre[n] * (M /2);
 			if (n != 0) {
 				hcf[n - 1] = lcf[n] - 1;
-	
+
 				//pushing the spectrum up if the expe function gets "clumped"
-				if (lcf[n] <= lcf[n - 1])lcf[n] = lcf[n - 1] + 1; 
+				if (lcf[n] <= lcf[n - 1])lcf[n] = lcf[n - 1] + 1;
 				hcf[n - 1] = lcf[n] - 1;
 			}
 
@@ -595,7 +601,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 		// process: weigh signal to frequencies
 		for (n = 0; n < bars;
-			n++)k[n] = pow(fc[n],0.85) * ((float)height/(M*32000)) * 
+			n++)k[n] = pow(fc[n],0.85) * ((float)height/(M*32000)) *
 				p.smooth[(int)floor(((double)n) * smh)];
 
 		if (p.stereo) bars = bars * 2;
@@ -712,7 +718,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 					fl = monstercat_filter(fl, bars / 2, p.waves,
 					 	p.monstercat);
 					fr = monstercat_filter(fr, bars / 2, p.waves,
-						p.monstercat);	
+						p.monstercat);
 				} else {
 					fl = monstercat_filter(fl, bars, p.waves, p.monstercat);
 				}
@@ -755,11 +761,11 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 					f[o] = fmem[o] * p.integral + f[o];
 					fmem[o] = f[o];
 
-					int diff = (height + 1) - f[o]; 
+					int diff = (height + 1) - f[o];
 					if (diff < 0) diff = 0;
 					double div = 1 / (diff + 1);
-					//f[o] = f[o] - pow(div, 10) * (height + 1); 
-					fmem[o] = fmem[o] * (1 - div / 20); 
+					//f[o] = f[o] - pow(div, 10) * (height + 1);
+					fmem[o] = fmem[o] * (1 - div / 20);
 
 					#ifdef DEBUG
 						mvprintw(o,0,"%d: f:%f->%f (%d->%d)peak:%d \n",
@@ -774,7 +780,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 			for (o = 0; o < bars; o++) {
 				if (f[o] < 1) {
 					f[o] = 1;
-					if (p.om == 4) f[o] = 0;
+					if (p.om == 4 || p.om == 5) f[o] = 0;
 				}
 				//if(f[o] > maxvalue) maxvalue = f[o];
 			}
@@ -793,7 +799,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 				if (o == bars - 1) p.sens = p.sens * 1.002;
 				}
 			}
-			
+
 			// output: draw processed input
 			#ifndef DEBUG
 				switch (p.om) {
@@ -817,6 +823,9 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 							p.bit_format, p.ascii_range, p.bar_delim,
 							 p.frame_delim,f);
 						break;
+	                case 5:
+	                    rc = maxSPI(bars, fp, p.bar_delim, p.frame_delim, p.ascii_range, f);
+	                    break;
 				}
 
 				//terminal has been resized breaking to recalibrating values
@@ -826,7 +835,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 					req.tv_sec = 1  / (float)p.framerate;
 				} else {
 					req.tv_sec = 0;
-					req.tv_nsec = (1 / (float)p.framerate) * 1000000000; 
+					req.tv_nsec = (1 / (float)p.framerate) * 1000000000;
 				}
 
 				nanosleep (&req, NULL);
@@ -841,11 +850,11 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
                 cleanup();
    				fprintf(stderr,
                 "Audio thread exited unexpectedly. %s\n", audio.error_message);
-                exit(EXIT_FAILURE); 
-            } 
+                exit(EXIT_FAILURE);
+            }
 
 		}//resize terminal
-        
+
 	}//reloading config
 	req.tv_sec = 0;
 	req.tv_nsec = 100; //waiting some time to make shure audio is ready
@@ -857,7 +866,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 	if (p.customEQ) free(p.smooth);
 	if (sourceIsAuto) free(audio.source);
-   
+
     cleanup();
 
 	//fclose(fp);
