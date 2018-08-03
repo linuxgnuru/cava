@@ -47,6 +47,9 @@
 #include "output/max_spi.h"
 #include "output/max_spi.c"
 
+#include "output/4max_spi.h"
+#include "output/4max_spi.c"
+
 #include "input/fifo.h"
 #include "input/fifo.c"
 
@@ -466,7 +469,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		height = (h - 1) * 8;
 
 		// output open file/fifo for raw output
-		if (p.om == 4 || p.om == 5) {
+		if (p.om == 4 || p.om == 5 || p.om == 6) {
 
             if (p.om == 4) {
                 if (strcmp(p.raw_target,"/dev/stdout") != 0) {
@@ -513,9 +516,10 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	            if (p.om == 5) {
 	                maxSPI_init();
 	            }
-
-
-
+	            // max4SPI
+	            if (p.om == 6) {
+	                max4SPI_init();
+	            }
 		}
 
  		//handle for user setting too many bars
@@ -828,6 +832,9 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	                case 5:
 	                    //rc = maxSPI(bars, fp, p.bar_delim, p.frame_delim, p.ascii_range, f);
 	                    rc = maxSPI(bars, p.ascii_range, f);
+	                    break;
+	                case 6:
+	                    rc = max4SPI(bars, p.ascii_range, f);
 	                    break;
 				}
 
