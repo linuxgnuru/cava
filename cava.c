@@ -86,23 +86,22 @@ int rc;
 int M = 2048;
 int output_mode;
 
-
-
 // whether we should reload the config or not
 int should_reload = 0;
-
 
 // general: cleanup
 void cleanup(void)
 {
-	if (output_mode == 1 || output_mode == 2 ) {
+	if (output_mode == 1 || output_mode == 2)
+    {
 	#ifdef NCURSES
 	    cleanup_terminal_ncurses();
 	#else
 		;
 	#endif
     }
-    else if (output_mode ==3 ) {
+    else if (output_mode == 3)
+    {
 	    cleanup_terminal_noncurses();
     }
 }
@@ -110,27 +109,29 @@ void cleanup(void)
 // general: handle signals
 void sig_handler(int sig_no)
 {
-	if (sig_no == SIGUSR1) {
+	if (sig_no == SIGUSR1)
+    {
 		should_reload = 1;
 		return;
 	}
-
 	cleanup();
-	if (sig_no == SIGINT) {
+	if (sig_no == SIGINT)
+    {
 		printf("CTRL-C pressed -- goodbye\n");
 	}
 	signal(sig_no, SIG_DFL);
 	raise(sig_no);
 }
 
-
 #ifdef ALSA
-static bool is_loop_device_for_sure(const char * text) {
+static bool is_loop_device_for_sure(const char * text)
+{
 	const char * const LOOPBACK_DEVICE_PREFIX = "hw:Loopback,";
 	return strncmp(text, LOOPBACK_DEVICE_PREFIX, strlen(LOOPBACK_DEVICE_PREFIX)) == 0;
 }
 
-static bool directory_exists(const char * path) {
+static bool directory_exists(const char * path)
+{
 	DIR * const dir = opendir(path);
 	bool exists;// = dir != NULL;
     if (dir == NULL) exists = false;
@@ -141,8 +142,8 @@ static bool directory_exists(const char * path) {
 
 #endif
 
-int * separate_freq_bands(fftw_complex out[M / 2 + 1], int bars, int lcf[200],
-			 int hcf[200], float k[200], int channel, double sens, double ignore) {
+int * separate_freq_bands(fftw_complex out[M / 2 + 1], int bars, int lcf[200], int hcf[200], float k[200], int channel, double sens, double ignore)
+{
 	int o,i;
 	float peak[201];
 	static int fl[200];
@@ -150,20 +151,17 @@ int * separate_freq_bands(fftw_complex out[M / 2 + 1], int bars, int lcf[200],
 	int y[M / 2 + 1];
 	float temp;
 
-
 	// process: separate frequency bands
-	for (o = 0; o < bars; o++) {
-
+	for (o = 0; o < bars; o++)
+    {
 		peak[o] = 0;
-
 		// process: get peaks
-		for (i = lcf[o]; i <= hcf[o]; i++) {
-
+		for (i = lcf[o]; i <= hcf[o]; i++)
+        {
 			//getting r of compex
 			y[i] = hypot(out[i][0], out[i][1]);
 			peak[o] += y[i]; //adding upp band
 		}
-
 
 		peak[o] = peak[o] / (hcf[o]-lcf[o]+1); //getting average
 		temp = peak[o] * k[o] * sens; //multiplying with k and adjusting to sens settings
@@ -178,35 +176,43 @@ int * separate_freq_bands(fftw_complex out[M / 2 + 1], int bars, int lcf[200],
 }
 
 
-int * monstercat_filter (int * f, int bars, int waves, double monstercat) {
-
+int * monstercat_filter (int * f, int bars, int waves, double monstercat)
+{
 	int z;
-
 
 	// process [smoothing]: monstercat-style "average"
 
 	int m_y, de;
-	if (waves > 0) {
-		for (z = 0; z < bars; z++) { // waves
+	if (waves > 0)
+    {
+		for (z = 0; z < bars; z++)
+        { // waves
 			f[z] = f[z] / 1.25;
 			//if (f[z] < 1) f[z] = 1;
-			for (m_y = z - 1; m_y >= 0; m_y--) {
+			for (m_y = z - 1; m_y >= 0; m_y--)
+            {
 				de = z - m_y;
 				f[m_y] = max(f[z] - pow(de, 2), f[m_y]);
 			}
-			for (m_y = z + 1; m_y < bars; m_y++) {
+			for (m_y = z + 1; m_y < bars; m_y++)
+            {
 				de = m_y - z;
 				f[m_y] = max(f[z] - pow(de, 2), f[m_y]);
 			}
 		}
-	} else if (monstercat > 0) {
-		for (z = 0; z < bars; z++) {
+	}
+    else if (monstercat > 0)
+    {
+		for (z = 0; z < bars; z++)
+        {
 			//if (f[z] < 1)f[z] = 1;
-			for (m_y = z - 1; m_y >= 0; m_y--) {
+			for (m_y = z - 1; m_y >= 0; m_y--)
+            {
 				de = z - m_y;
 				f[m_y] = max(f[z] / pow(monstercat, de), f[m_y]);
 			}
-			for (m_y = z + 1; m_y < bars; m_y++) {
+			for (m_y = z + 1; m_y < bars; m_y++)
+            {
 				de = m_y - z;
 				f[m_y] = max(f[z] / pow(monstercat, de), f[m_y]);
 			}
@@ -221,8 +227,6 @@ int * monstercat_filter (int * f, int bars, int waves, double monstercat) {
 // general: entry point
 int main(int argc, char **argv)
 {
-
-
 	// general: define variables
 	pthread_t  p_thread;
 	int thr_id GCC_UNUSED;
@@ -293,8 +297,10 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	sigaction(SIGUSR1, &action, NULL);
 
 	// general: handle command-line arguments
-	while ((c = getopt (argc, argv, "p:vh")) != -1) {
-		switch (c) {
+	while ((c = getopt (argc, argv, "p:vh")) != -1)
+    {
+		switch (c)
+        {
 			case 'p': // argument: fifo path
 				snprintf(configPath, sizeof(configPath), "%s", optarg);
 				break;
@@ -332,20 +338,22 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	fftw_plan pr =  fftw_plan_dft_r2c_1d(M, inr, outr, FFTW_MEASURE);
 
 	// general: main loop
-	while (1) {
+	while (1)
+    {
 
 	//config: load
 	load_config(configPath, supportedInput, (void *)&p);
 
     output_mode = p.om;
 
-	if (p.om != 4 && p.om != 5) {
+	if (p.om != 4 && p.om != 5 && p.om != 6)
+    {
 		// Check if we're running in a tty
 		inAtty = 0;
-		if (strncmp(ttyname(0), "/dev/tty", 8) == 0 || strcmp(ttyname(0),
-			 "/dev/console") == 0) inAtty = 1;
+		if (strncmp(ttyname(0), "/dev/tty", 8) == 0 || strcmp(ttyname(0), "/dev/console") == 0) inAtty = 1;
 
-		if (inAtty) {
+		if (inAtty)
+        {
 			system("setfont cava.psf  >/dev/null 2>&1");
 			system("setterm -blank 0");
 		}
@@ -362,37 +370,42 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	if (p.stereo) audio.channels = 2;
 	if (!p.stereo) audio.channels = 1;
 
-	for (i = 0; i < M; i++) {
+	for (i = 0; i < M; i++)
+    {
 		audio.audio_out_l[i] = 0;
 		audio.audio_out_r[i] = 0;
 	}
 
 	#ifdef ALSA
 	// input_alsa: wait for the input to be ready
-	if (p.im == 1) {
-		if (is_loop_device_for_sure(audio.source)) {
-			if (directory_exists("/sys/")) {
-				if (! directory_exists("/sys/module/snd_aloop/")) {
+	if (p.im == 1)
+    {
+		if (is_loop_device_for_sure(audio.source))
+        {
+			if (directory_exists("/sys/"))
+            {
+				if (! directory_exists("/sys/module/snd_aloop/"))
+                {
       				cleanup();
-					fprintf(stderr,
-					"Linux kernel module \"snd_aloop\" does not seem to  be loaded.\n"
+					fprintf(stderr, "Linux kernel module \"snd_aloop\" does not seem to  be loaded.\n"
 					"Maybe run \"sudo modprobe snd_aloop\".\n");
 					exit(EXIT_FAILURE);
 				}
 			}
 		}
 
-		thr_id = pthread_create(&p_thread, NULL, input_alsa,
-														(void *)&audio); //starting alsamusic listener
+		thr_id = pthread_create(&p_thread, NULL, input_alsa, (void *)&audio); //starting alsamusic listener
 
 		n = 0;
 
-		while (audio.format == -1 || audio.rate == 0) {
+		while (audio.format == -1 || audio.rate == 0)
+        {
 			req.tv_sec = 0;
 			req.tv_nsec = 1000000;
 			nanosleep (&req, NULL);
 			n++;
-			if (n > 2000) {
+			if (n > 2000)
+            {
 				cleanup();
 				fprintf(stderr,
 				"could not get rate and/or format, problems with audio thread? quiting...\n");
@@ -406,15 +419,18 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	}
 	#endif
 
-	if (p.im == 2) {
+	if (p.im == 2)
+    {
 		//starting fifomusic listener
 		thr_id = pthread_create(&p_thread, NULL, input_fifo, (void*)&audio);
 		audio.rate = 44100;
 	}
 
 	#ifdef PULSE
-	if (p.im == 3) {
-		if (strcmp(audio.source, "auto") == 0) {
+	if (p.im == 3)
+    {
+		if (strcmp(audio.source, "auto") == 0)
+        {
 			getPulseDefaultSink((void*)&audio);
 			sourceIsAuto = 1;
 			}
@@ -434,8 +450,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 	if (p.highcf > audio.rate / 2) {
 		cleanup();
-		fprintf(stderr,
-			"higher cuttoff frequency can't be higher then sample rate / 2"
+		fprintf(stderr, "higher cuttoff frequency can't be higher then sample rate / 2"
 		);
 			exit(EXIT_FAILURE);
 	}
@@ -471,7 +486,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		// output open file/fifo for raw output
 		if (p.om == 4 || p.om == 5 || p.om == 6) {
 
-            if (p.om == 4) {
+            if (p.om == 4 || p.om == 6) {
                 if (strcmp(p.raw_target,"/dev/stdout") != 0) {
 
                     //checking if file exists
@@ -480,15 +495,13 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
                         fptest = open(p.raw_target, O_RDONLY | O_NONBLOCK, 0644);
 
                         if (fptest == -1) {
-                            printf("could not open file %s for writing\n",
-                                    p.raw_target);
+                            printf("could not open file %s for writing\n", p.raw_target);
                             exit(1);
                         }
                     } else {
                         printf("creating fifo %s\n",p.raw_target);
                         if (mkfifo(p.raw_target, 0664) == -1) {
-                            printf("could not create fifo %s\n",
-                                    p.raw_target);
+                            printf("could not create fifo %s\n", p.raw_target);
                             exit(1);
                         }
                         //fifo needs to be open for reading in order to write to it
@@ -512,14 +525,14 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
             } else {
                 height = p.ascii_range;
             }
-	            // maxSPI
-	            if (p.om == 5) {
-	                maxSPI_init();
-	            }
-	            // max4SPI
-	            if (p.om == 6) {
-	                max4SPI_init();
-	            }
+            // maxSPI
+            if (p.om == 5) {
+                maxSPI_init();
+            }
+            // max4SPI
+            if (p.om == 6) {
+                max4SPI_init();
+            }
 		}
 
  		//handle for user setting too many bars
@@ -542,10 +555,6 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 			if (bars%2 != 0) bars--;
 		}
 
-
-
-
-
 		// process [smoothing]: calculate gravity
 		g = p.gravity * ((float)height / 2160) * pow((60 / (float)p.framerate), 2.5);
 
@@ -555,15 +564,11 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		if (rest < 0)rest = 0;
 
 		#ifdef DEBUG
-			printw("height: %d width: %d bars:%d bar width: %d rest: %d\n",
-						 w,
-						 h, bars, p.bw, rest);
+			printw("height: %d width: %d bars:%d bar width: %d rest: %d\n", w, h, bars, p.bw, rest);
 		#endif
 
 		//output: start noncurses mode
 		if (p.om == 3) init_terminal_noncurses(p.col, p.bgcol, w, h, p.bw);
-
-
 
 		if (p.stereo) bars = bars / 2; // in stereo onle half number of bars per channel
 
@@ -571,16 +576,13 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 			smh = (double)(((double)p.smcount)/((double)bars));
 		}
 
-
-		double freqconst = log10((float)p.lowcf / (float)p.highcf) /  
-			((float)1 / ((float)bars + (float)1) - 1);
+		double freqconst = log10((float)p.lowcf / (float)p.highcf) /  ((float)1 / ((float)bars + (float)1) - 1);
 
 		//freqconst = -2;
 
 		// process: calculate cutoff frequencies
 		for (n = 0; n < bars + 1; n++) {
-			fc[n] = p.highcf * pow(10, freqconst * (-1) + ((((float)n + 1) / 
-				((float)bars + 1)) * freqconst));
+			fc[n] = p.highcf * pow(10, freqconst * (-1) + ((((float)n + 1) / ((float)bars + 1)) * freqconst));
 			fre[n] = fc[n] / (audio.rate / 2);
 			//remember nyquist!, pr my calculations this should be rate/2
 			//and  nyquist freq in M/2 but testing shows it is not...
@@ -598,17 +600,14 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 			#ifdef DEBUG
 			 	if (n != 0) {
-					mvprintw(n,0,"%d: %f -> %f (%d -> %d) \n", n, 
-						fc[n - 1], fc[n], lcf[n - 1],
-			 				 hcf[n - 1]);
+					mvprintw(n,0,"%d: %f -> %f (%d -> %d) \n", n, fc[n - 1], fc[n], lcf[n - 1], hcf[n - 1]);
 						}
 			#endif
 		}
 
 		// process: weigh signal to frequencies
 		for (n = 0; n < bars;
-			n++)k[n] = pow(fc[n],0.85) * ((float)height/(M*32000)) *
-				p.smooth[(int)floor(((double)n) * smh)];
+			n++)k[n] = pow(fc[n],0.85) * ((float)height/(M*32000)) * p.smooth[(int)floor(((double)n) * smh)];
 
 		if (p.stereo) bars = bars * 2;
 
@@ -694,14 +693,11 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 					fftw_execute(pl);
 					fftw_execute(pr);
 
-					fl = separate_freq_bands(outl,bars/2,lcf,hcf, k, 1, 
-						p.sens, p.ignore);
-					fr = separate_freq_bands(outr,bars/2,lcf,hcf, k, 2, 
-						p.sens, p.ignore);
+					fl = separate_freq_bands(outl,bars/2,lcf,hcf, k, 1, p.sens, p.ignore);
+					fr = separate_freq_bands(outr,bars/2,lcf,hcf, k, 2, p.sens, p.ignore);
 				} else {
 					fftw_execute(pl);
-					fl = separate_freq_bands(outl,bars,lcf,hcf, k, 1, 
-						p.sens, p.ignore);
+					fl = separate_freq_bands(outl,bars,lcf,hcf, k, 1, p.sens, p.ignore);
 				}
 
 
@@ -721,10 +717,8 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 
 			if (p.monstercat) {
 				if (p.stereo) {
-					fl = monstercat_filter(fl, bars / 2, p.waves,
-					 	p.monstercat);
-					fr = monstercat_filter(fr, bars / 2, p.waves,
-						p.monstercat);
+					fl = monstercat_filter(fl, bars / 2, p.waves, p.monstercat);
+					fr = monstercat_filter(fr, bars / 2, p.waves, p.monstercat);
 				} else {
 					fl = monstercat_filter(fl, bars, p.waves, p.monstercat);
 				}
@@ -774,9 +768,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 					fmem[o] = fmem[o] * (1 - div / 20);
 
 					#ifdef DEBUG
-						mvprintw(o,0,"%d: f:%f->%f (%d->%d)peak:%d \n",
-							 o, fc[o], fc[o + 1],
-									 lcf[o], hcf[o], f[o]);
+						mvprintw(o,0,"%d: f:%f->%f (%d->%d)peak:%d \n", o, fc[o], fc[o + 1], lcf[o], hcf[o], f[o]);
 					#endif
 				}
 			}
@@ -786,7 +778,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 			for (o = 0; o < bars; o++) {
 				if (f[o] < 1) {
 					f[o] = 1;
-					if (p.om == 4 || p.om == 5) f[o] = 0;
+					if (p.om == 4 || p.om == 5 || p.om == 6) f[o] = 0;
 				}
 				//if(f[o] > maxvalue) maxvalue = f[o];
 			}
@@ -811,8 +803,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 				switch (p.om) {
 					case 1:
 						#ifdef NCURSES
-						rc = draw_terminal_ncurses(inAtty, h, w, bars, 
-							p.bw, p.bs, rest, f, flastd, p.gradient);
+						rc = draw_terminal_ncurses(inAtty, h, w, bars, p.bw, p.bs, rest, f, flastd, p.gradient);
 						break;
 						#endif
 					case 2:
@@ -821,20 +812,17 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 						break;
 						#endif
 					case 3:
-						rc = draw_terminal_noncurses(inAtty, h, w, bars,
-							 p.bw, p.bs, rest, f, flastd);
+						rc = draw_terminal_noncurses(inAtty, h, w, bars, p.bw, p.bs, rest, f, flastd);
 						break;
 					case 4:
-						rc = print_raw_out(bars, fp, p.is_bin, 
-							p.bit_format, p.ascii_range, p.bar_delim,
-							 p.frame_delim,f);
+						rc = print_raw_out(bars, fp, p.is_bin, p.bit_format, p.ascii_range, p.bar_delim, p.frame_delim,f);
 						break;
 	                case 5:
 	                    //rc = maxSPI(bars, fp, p.bar_delim, p.frame_delim, p.ascii_range, f);
 	                    rc = maxSPI(bars, p.ascii_range, f);
 	                    break;
 	                case 6:
-	                    rc = max4SPI(bars, p.ascii_range, f);
+	                    rc = max4SPI(bars, fp, p.ascii_range, f);
 	                    break;
 				}
 
@@ -858,8 +846,7 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
             //checking if audio thread has exited unexpectedly
             if (audio.terminate == 1) {
                 cleanup();
-   				fprintf(stderr,
-                "Audio thread exited unexpectedly. %s\n", audio.error_message);
+   				fprintf(stderr, "Audio thread exited unexpectedly. %s\n", audio.error_message);
                 exit(EXIT_FAILURE);
             }
 

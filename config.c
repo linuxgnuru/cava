@@ -158,9 +158,11 @@ if (strcmp(outputMethod, "raw") == 0) {//raw:
 
 }
     if (strcmp(outputMethod, "maxSPI") == 0) {//maxSPI:
+		p->is_bin = 0;
         p->om = 5;
     }
     if (strcmp(outputMethod, "max4SPI") == 0) {//max4SPI:
+		p->is_bin = 0;
         p->om = 6;
     }
 if (p->om == 0) {

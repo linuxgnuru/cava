@@ -86,7 +86,7 @@ void SetData(char adr, char data, char device)
         }
     }
     endTransfer();
-    delay(1);
+    //delay(1);
 }
 
 // Writes the same data to all devices
@@ -147,9 +147,12 @@ void max4SPI_init()
 }
 
 //int maxSPI(int bars_count, int fd, char bar_delim, char frame_delim, int ascii_range, const int const f[200])
-int max4SPI(int bars_count, int ascii_range, const int const f[200])
+//int max4SPI(int bars_count, int ascii_range, const int const f[200])
+int max4SPI(int bars_count, int fd, int ascii_range, const int const f[200])
 {
     div_t t;
+    char bar_delim = ':';
+    char frame_delim = '\n';
     for (int i = 0; i < bars_count; i++)
     {
         t = div(i, 8);
@@ -157,9 +160,22 @@ int max4SPI(int bars_count, int ascii_range, const int const f[200])
         int col = t.rem;
         int f_ranged = f[i];
         if (f_ranged > ascii_range) f_ranged = ascii_range;
+#if 0
+        // finding size of number-string in byte
+        int bar_height_size = 2; // a number + \0
+        if (f_ranged != 0) bar_height_size += floor (log10 (f_ranged));
+        char bar_height[bar_height_size];
+        snprintf(bar_height, bar_height_size, "%d", f_ranged);
+        //fprintf(stderr, "[%s] [%d]", bar_height, f_ranged);
+        write(fd, bar_height, bar_height_size - 1);
+        write(fd, &bar_delim, sizeof(bar_delim));
+        //fprintf(stderr, "[%s]", bar_height);
+#endif
         //fprintf(stderr, "[wiggins] -- ascii_range [%d] f_ranged [%d]\n", ascii_range, f_ranged);
         doGraph4(addr, f_ranged, col);
     }
+//	write(fd, &frame_delim, sizeof(frame_delim));
+    //fprintf(stderr, "\n");
     return 0;
 }
 
