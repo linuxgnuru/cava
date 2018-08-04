@@ -347,3 +347,6 @@ Thanks to:
 for mayor contributions in the early development of this project.
 
 Also thanks to [dpayne](https://github.com/dpayne/) for figuring out how to find the pulseaudio default sink name.
+
+
+New with this fork: max7219 8x32 LED matrix support
