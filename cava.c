@@ -486,7 +486,8 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 		// output open file/fifo for raw output
 		if (p.om == 4 || p.om == 5 || p.om == 6) {
 
-            if (p.om == 4 || p.om == 6) {
+            //if (p.om == 4 || p.om == 6) {
+            if (p.om == 4) {
                 if (strcmp(p.raw_target,"/dev/stdout") != 0) {
 
                     //checking if file exists
@@ -822,7 +823,8 @@ as of 0.4.0 all options are specified in config file, see in '/home/username/.co
 	                    rc = maxSPI(bars, p.ascii_range, f);
 	                    break;
 	                case 6:
-	                    rc = max4SPI(bars, fp, p.ascii_range, f);
+	                    //rc = max4SPI(bars, fp, p.ascii_range, f);
+	                    rc = max4SPI(bars, p.ascii_range, f);
 	                    break;
 				}
 

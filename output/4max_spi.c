@@ -103,7 +103,7 @@ void Draw(int addr, int col, int row, _Bool b)
 {
     char mydata = 0x0;
 
-    col = abs(col - 7);
+    //col = abs(col - 7);
     bitWrite4(addr, col, row, b);
     mydata = ledData[addr][col];
     SetData(Digits[col], mydata, addr + 1);
@@ -147,12 +147,12 @@ void max4SPI_init()
 }
 
 //int maxSPI(int bars_count, int fd, char bar_delim, char frame_delim, int ascii_range, const int const f[200])
-//int max4SPI(int bars_count, int ascii_range, const int const f[200])
-int max4SPI(int bars_count, int fd, int ascii_range, const int const f[200])
+//int max4SPI(int bars_count, int fd, int ascii_range, const int const f[200])
+int max4SPI(int bars_count, int ascii_range, const int const f[200])
 {
     div_t t;
-    char bar_delim = ':';
-    char frame_delim = '\n';
+    //char bar_delim = ':';
+    //char frame_delim = '\n';
     for (int i = 0; i < bars_count; i++)
     {
         t = div(i, 8);
