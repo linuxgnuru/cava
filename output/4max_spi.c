@@ -140,7 +140,7 @@ void max4SPI_init()
     }
     SetDecodeMode(0); // Disable the decode mode because at the moment i dont use 7-Segment displays
     SetScanLimit(7); // Set the number of digits; start to count at 0
-    SetIntensity(5); // Set the intensity between 0 and 15. Attention 0 is not off!
+    SetIntensity(2); // Set the intensity between 0 and 15. Attention 0 is not off!
     SetShutDown(0); // Disable shutdown mode
     clearAll4();
     //fprintf(stderr, "[wiggins] -- Init 4 SPI\n");
