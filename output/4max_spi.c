@@ -97,13 +97,15 @@ void SetScanLimit(char Digits) { SetData_all(ScanLimit, Digits); }
 void SetIntensity(char intense) { SetData_all(Intensity, intense); }
 void SetDecodeMode(char Mode) { SetData_all(DecodeMode, Mode); }
 
-void clearAll4() { for (int i = 0; i < 8; i++) SetData_all(Digits[i], 0b00000000); }
-
 void Draw(int addr, int col, int row, _Bool b)
 {
     char mydata = 0x0;
 
-    //col = abs(col - 7);
+    if (addr == 2)
+    {
+        col = abs(col - 7);
+        row = abs(row - 7);
+    }
     bitWrite4(addr, col, row, b);
     mydata = ledData[addr][col];
     SetData(Digits[col], mydata, addr + 1);
@@ -128,6 +130,13 @@ void doGraph4(int addr, int height, int col)
         for (i = 7; i > -1; i--)
             Draw(addr, i, col, (i < height));
     }
+}
+
+//void clearAll4() { for (int i = 0; i < 8; i++) SetData_all(Digits[i], 0x0); }
+void clearAll4()
+{
+    for (int i = 0; i < 8; i++)
+        doGraph4(255, 0, i);
 }
 
 void max4SPI_init()
